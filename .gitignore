@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Исключения для KiCad (временные файлы разводки и бэкапы)
+*.bck
+*.kicad_pcb-bak
+*.sch-bak
+fp-info-cache
+
+# Временные файлы FreeCAD
+*.FCStd1
+*.pyuser
+
+# Файлы сборки микроконтроллеров (PlatformIO / STM32Cube)
+.pio/
+.build/
+Build/
