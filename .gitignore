@@ -7,6 +7,7 @@ __pycache__/
 *.kicad_pcb-bak
 *.sch-bak
 fp-info-cache
+.history
 
 # Временные файлы FreeCAD
 *.FCStd1
@@ -16,3 +17,4 @@ fp-info-cache
 .pio/
 .build/
 Build/
+.vscode/
