@@ -2,8 +2,10 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 
-// Состояния, в которых может находиться меню
-enum MenuState { MAIN_MENU, SUBMENU_ECG, SUBMENU_WIFI };
+enum MenuState { 
+    MAIN_MENU, SUBMENU_ECG, SUBMENU_WIFI_CONFIG, 
+    MENU_RECORDS, MENU_PATIENT, SCREEN_SENDING 
+};
 
 class SimpleMenu {
 private:
@@ -11,34 +13,48 @@ private:
     
     MenuState currentState = MAIN_MENU;
     
-    // Переменные для главного меню
     int mainCurrentItem = 0;
-    const int totalMainItems = 2;
-    const char* menuItems[2] = { "1. Start ECG", "2. Wi-Fi Setup" };
+    int topIndex = 0; 
+    const int totalMainItems = 3;
+    const char* menuItems[3] = { "1. Start ECG", "2. Wi-Fi", "3. Send Data" };
 
-    // Переменные для подменю
-    int subCurrentItem = 0; // 0 = OFF, 1 = ON
-    
-    // Фактические состояния устройств
+    int subCurrentItem = 0; 
     bool isEcgOn = false;
-    bool isWifiOn = false;
+    bool hasSavedWiFi = false; 
 
-    // Внутренние методы отрисовки
+    int recordIndex = 0;
+    const int totalRecords = 3;
+    const char* records[3] = { "1. 20 Sep", "2. 21 Sep", "3. 22 Sep" };
+
+    // НОВОЕ: Выбор в меню пациента (0 = Назад, 1 = Отправить)
+    int patientCurrentItem = 0; 
+
+    bool wifiSetupRequested = false;
+    bool sendRequested = false;
+
     void drawMainMenu();
     void drawSubmenu(const char* title);
-    void drawHighlightMain();
-    void drawHighlightSub();
+    void drawRecordsMenu();
+    void drawPatientMenu(); // Обновленная версия
 
 public:
     SimpleMenu();
     void begin();
-    void draw();          // Обновляет экран в зависимости от currentState
+    void draw();
+    void nextItem();
+    void selectItem();
     
-    // Эти методы вызываются из обработчиков кнопки в main.cpp
-    void nextItem();      // Одинарный клик
-    void selectItem();    // Двойной клик
+    void drawWifiSetupScreen(int animFrame);
+    void resetToMainMenu();
     
-    // Геттеры для main.cpp, чтобы знать, что делать
+    void updateWiFiStatus(bool saved) { hasSavedWiFi = saved; }
+    
+    bool isWifiSetupRequested() const { return wifiSetupRequested; }
+    void clearWifiSetupRequest() { wifiSetupRequested = false; }
+    
+    bool isSendRequested() const { return sendRequested; }
+    void clearSendRequest() { sendRequested = false; }
+    
+    int getCurrentMainItem() const { return mainCurrentItem; }
     bool isEcgActive() const { return isEcgOn; }
-    bool isWifiActive() const { return isWifiOn; }
 };
