@@ -10,7 +10,7 @@ Button myButton(BUTTON_PIN);
 
 // --- Тайминги задач ---
 static const uint32_t UI_PERIOD_MS  = 100;  // 10 Гц — отрисовка OLED
-static const uint32_t ECG_PERIOD_MS = 4;    // 250 Гц — сэмплирование ЭКГ
+static const uint32_t ECG_PERIOD_MS = 20;    // 250 Гц — сэмплирование ЭКГ
 
 static uint32_t lastUiTime  = 0;
 static uint32_t lastEcgTime = 0;
@@ -31,9 +31,16 @@ void loop() {
     // 1) Опрос кнопки — как можно чаще, без блокировок
     myButton.update();
 
+    // Обработка короткого нажатия (перемещение стрелочки)
     if (myButton.isShortPress()) {
         Serial.println("[BTN] Short");
         ui_handleShortPress();
+    }
+
+    // Обработка двойного нажатия (вход/выход из подменю)
+    if (myButton.isDoublePress()) { 
+        Serial.println("[BTN] Double");
+        ui_handleDoublePress();
     }
 
     uint32_t now = millis();
@@ -41,13 +48,9 @@ void loop() {
     // 2) Сэмплирование ЭКГ по таймеру (независимо от UI)
     if (now - lastEcgTime >= ECG_PERIOD_MS) {
         lastEcgTime = now;
-
         if (ecg_is_enabled()) {
             int sample = ecg_read_sample();
             Serial.println(sample);
-        } else {
-            // можно раскомментировать, чтобы плоттер не «висел»
-            // Serial.println(0);
         }
     }
 

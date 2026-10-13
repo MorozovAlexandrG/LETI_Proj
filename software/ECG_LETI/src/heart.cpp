@@ -8,7 +8,7 @@ void ecg_init() {
     pinMode(ECG_SDN,      OUTPUT);
 
     analogReadResolution(12);
-    analogSetPinAttenuation(ECG_AD_OUT, ADC_11db); // 0..3.3 В
+    
 
     ecg_disable();
 }

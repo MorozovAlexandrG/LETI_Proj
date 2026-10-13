@@ -22,10 +22,10 @@ void ui_update() {
 
     switch (currentState) {
     case MAIN_MENU: {
-        u8g2.setFont(u8g2_font_ncenB08_tr);
+        u8g2.setFont(u8g2_font_6x10_tr);
         u8g2.drawStr(0, 12, "Main menu");
 
-        u8g2.setFont(u8g2_font_6x10_tr);
+        u8g2.setFont(u8g2_font_7x14_tr);
         char buf[32];
         snprintf(buf, sizeof(buf), "%c1) ECG: %s",
                  mainMenuSelection == 0 ? '>' : ' ',
@@ -36,8 +36,7 @@ void ui_update() {
                  mainMenuSelection == 1 ? '>' : ' ');
         u8g2.drawStr(0, 47, buf);
 
-        u8g2.setFont(u8g2_font_5x7_tr);
-        u8g2.drawStr(0, 60, "Short:Move  Dbl:Enter  Long:Back");
+
         break;
     }
     case ECG_MENU: {
@@ -60,7 +59,7 @@ void ui_update() {
         u8g2.setFont(u8g2_font_ncenB08_tr);
         u8g2.drawStr(0, 12, "Data");
 
-        u8g2.setFont(u8g2_font_6x10_tr);
+        u8g2.setFont(u8g2_font_7x14_tr);
         u8g2.drawStr(0, 35, "Empty for now.");
 
         u8g2.setFont(u8g2_font_5x7_tr);

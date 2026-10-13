@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 
 # === НАСТРОЙКИ ===
 # Укажите ваш порт! (Windows: 'COM3', macOS/Linux: '/dev/ttyACM0' или '/dev/cu.usbmodem...')
-PORT = '/dev/ttyACM0'  
+PORT = '/dev/ttyACM1'  
 BAUDRATE = 115200
 # =================
 
