@@ -2,59 +2,25 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 
-enum MenuState { 
-    MAIN_MENU, SUBMENU_ECG, SUBMENU_WIFI_CONFIG, 
-    MENU_RECORDS, MENU_PATIENT, SCREEN_SENDING 
+// SW I2C на D4 (SDA) и D5 (SCL) — не конфликтует с AD8232
+#define OLED_SDA D4
+#define OLED_SCL D5
+
+extern U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2;
+
+enum MenuState {
+    MAIN_MENU,
+    ECG_MENU,
+    DATA_MENU
 };
 
-class SimpleMenu {
-private:
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
-    
-    MenuState currentState = MAIN_MENU;
-    
-    int mainCurrentItem = 0;
-    int topIndex = 0; 
-    const int totalMainItems = 3;
-    const char* menuItems[3] = { "1. Start ECG", "2. Wi-Fi", "3. Send Data" };
+extern MenuState currentState;
+extern int mainMenuSelection;   // 0 = ECG, 1 = Data
+extern int ecgMenuSelection;    // 0 = OFF, 1 = ON
 
-    int subCurrentItem = 0; 
-    bool isEcgOn = false;
-    bool hasSavedWiFi = false; 
+void ui_init();
+void ui_update();               // вызывать по таймеру (~10 Гц)
 
-    int recordIndex = 0;
-    const int totalRecords = 3;
-    const char* records[3] = { "1. 20 Sep", "2. 21 Sep", "3. 22 Sep" };
-
-    // НОВОЕ: Выбор в меню пациента (0 = Назад, 1 = Отправить)
-    int patientCurrentItem = 0; 
-
-    bool wifiSetupRequested = false;
-    bool sendRequested = false;
-
-    void drawMainMenu();
-    void drawSubmenu(const char* title);
-    void drawRecordsMenu();
-    void drawPatientMenu(); // Обновленная версия
-
-public:
-    SimpleMenu();
-    void begin();
-    void draw();
-    void nextItem();
-    void selectItem();
-    
-    void drawWifiSetupScreen(int animFrame);
-    void resetToMainMenu();
-    
-    void updateWiFiStatus(bool saved) { hasSavedWiFi = saved; }
-    
-    bool isWifiSetupRequested() const { return wifiSetupRequested; }
-    void clearWifiSetupRequest() { wifiSetupRequested = false; }
-    
-    bool isSendRequested() const { return sendRequested; }
-    void clearSendRequest() { sendRequested = false; }
-    
-    int getCurrentMainItem() const { return mainCurrentItem; }
-    bool isEcgActive() const { return isEcgOn; }
-};
+void ui_handleShortPress();
+void ui_handleDoublePress();
+void ui_handleLongPress();

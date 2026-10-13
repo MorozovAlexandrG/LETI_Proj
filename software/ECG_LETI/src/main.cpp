@@ -1,73 +1,59 @@
 #include <Arduino.h>
-#include <OneButton.h>
+
+#include "button.h"
+#include "heart.h"
 #include "DisplayManager.h"
-#include "NetworkManager.h"
 
-#define BUTTON_PIN 4
+#define BUTTON_PIN 2   // D0 на XIAO ESP32-C3
 
-SimpleMenu myMenu;
-OneButton button(BUTTON_PIN, true, true);
-NetworkManager network;
+Button myButton(BUTTON_PIN);
 
-bool isWifiConfigMode = false;
-unsigned long lastAnimTime = 0;
-int animFrame = 0;
+// --- Тайминги задач ---
+static const uint32_t UI_PERIOD_MS  = 100;  // 10 Гц — отрисовка OLED
+static const uint32_t ECG_PERIOD_MS = 4;    // 250 Гц — сэмплирование ЭКГ
 
-void handleClick() {
-    if (isWifiConfigMode) {
-        network.stopConfigPortal();
-        isWifiConfigMode = false;
-        myMenu.resetToMainMenu();
-        return;
-    }
-    myMenu.nextItem();
-}
-
-void handleDoubleClick() {
-    if (isWifiConfigMode) return;
-    
-    myMenu.selectItem();
-    
-    // ИСПРАВЛЕНО: Убрана двойная проверка условия
-    if (myMenu.isWifiSetupRequested()) {
-        myMenu.clearWifiSetupRequest();
-        isWifiConfigMode = true;
-        network.startConfigPortal();
-        animFrame = 0;
-        lastAnimTime = millis();
-        myMenu.drawWifiSetupScreen(animFrame);
-    }
-}
+static uint32_t lastUiTime  = 0;
+static uint32_t lastEcgTime = 0;
 
 void setup() {
     Serial.begin(115200);
-    delay(1000);
-    Serial.println("\n--- ECG Project Start ---");
+    delay(500);
 
-    myMenu.begin();
-    network.begin();
-    
-    // ИСПРАВЛЕНО: Обновляем статус Wi-Fi при каждом старте
-    myMenu.updateWiFiStatus(network.hasSavedWiFi());
-    
-    button.attachClick(handleClick);
-    button.attachDoubleClick(handleDoubleClick);
-    
-    myMenu.draw();
+    myButton.begin();
+    ecg_init();
+    ui_init();
+
+    Serial.println("System ready.");
+    Serial.println("Button: GPIO2  |  ECG: AD8232  |  OLED: SW I2C D4/D5");
 }
 
 void loop() {
-    button.tick();
+    // 1) Опрос кнопки — как можно чаще, без блокировок
+    myButton.update();
 
-    if (isWifiConfigMode) {
-        network.handleClient();
-        
-        if (millis() - lastAnimTime > 250) {
-            animFrame = (animFrame + 1) % 4;
-            myMenu.drawWifiSetupScreen(animFrame);
-            lastAnimTime = millis();
+    if (myButton.isShortPress()) {
+        Serial.println("[BTN] Short");
+        ui_handleShortPress();
+    }
+
+    uint32_t now = millis();
+
+    // 2) Сэмплирование ЭКГ по таймеру (независимо от UI)
+    if (now - lastEcgTime >= ECG_PERIOD_MS) {
+        lastEcgTime = now;
+
+        if (ecg_is_enabled()) {
+            int sample = ecg_read_sample();
+            Serial.println(sample);
+        } else {
+            // можно раскомментировать, чтобы плоттер не «висел»
+            // Serial.println(0);
         }
     }
-    
-    delay(10);
+
+    // 3) Обновление UI ~10 Гц
+    if (now - lastUiTime >= UI_PERIOD_MS) {
+        lastUiTime = now;
+        ui_update();
+    }
 }
