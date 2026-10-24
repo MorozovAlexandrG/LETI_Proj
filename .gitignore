@@ -8,6 +8,7 @@ __pycache__/
 *.sch-bak
 fp-info-cache
 .history
+.history
 
 # Временные файлы FreeCAD
 *.FCStd1
