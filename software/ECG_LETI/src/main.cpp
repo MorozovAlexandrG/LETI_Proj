@@ -1,62 +1,38 @@
 #include <Arduino.h>
 
-#include "button.h"
-#include "heart.h"
-#include "DisplayManager.h"
-
-#define BUTTON_PIN 2   // D0 на XIAO ESP32-C3
-
-Button myButton(BUTTON_PIN);
-
-// --- Тайминги задач ---
-static const uint32_t UI_PERIOD_MS  = 100;  // 10 Гц — отрисовка OLED
-static const uint32_t ECG_PERIOD_MS = 20;    // 250 Гц — сэмплирование ЭКГ
-
-static uint32_t lastUiTime  = 0;
-static uint32_t lastEcgTime = 0;
+// Назначение пинов XIAO ESP32-C3
+#define AD_OUTPUT  2 // Аналоговый выход AD8232
+#define LO_MINUS   4 // Индикатор отсоединения LO-
+#define LO_PLUS    3 // Индикатор отсоединения LO+
 
 void setup() {
-    Serial.begin(115200);
-    delay(500);
+  // Инициализация Serial для плоттера
+  Serial.begin(115200);
+  delay(1000); // Небольшая задержка для инициализации USB CDC на ESP32-C3
 
-    myButton.begin();
-    ecg_init();
-    ui_init();
+  // LO+ и LO- работают как цифровые входы
+  pinMode(LO_MINUS, INPUT);
+  pinMode(LO_PLUS, INPUT);
 
-    Serial.println("System ready.");
-    Serial.println("Button: GPIO2  |  ECG: AD8232  |  OLED: SW I2C D4/D5");
+  // Настройка АЦП (опционально, по умолчанию 12 бит)
+  analogReadResolution(12); 
 }
 
 void loop() {
-    // 1) Опрос кнопки — как можно чаще, без блокировок
-    myButton.update();
+  // Проверяем состояние электродов
+  // Если хотя бы один электрод отсоединен, LO+ или LO- станут HIGH
+  bool leadsOff = digitalRead(LO_MINUS) || digitalRead(LO_PLUS);
 
-    // Обработка короткого нажатия (перемещение стрелочки)
-    if (myButton.isShortPress()) {
-        Serial.println("[BTN] Short");
-        ui_handleShortPress();
-    }
+  if (leadsOff) {
+    // Если электроды отпали, рисуем 0 на графике
+    Serial.println(0);
+  } else {
+    // Считываем аналоговый сигнал ЭКГ
+    int ecgValue = analogRead(AD_OUTPUT);
+    Serial.println(ecgValue);
+  }
 
-    // Обработка двойного нажатия (вход/выход из подменю)
-    if (myButton.isDoublePress()) { 
-        Serial.println("[BTN] Double");
-        ui_handleDoublePress();
-    }
-
-    uint32_t now = millis();
-
-    // 2) Сэмплирование ЭКГ по таймеру (независимо от UI)
-    if (now - lastEcgTime >= ECG_PERIOD_MS) {
-        lastEcgTime = now;
-        if (ecg_is_enabled()) {
-            int sample = ecg_read_sample();
-            Serial.println(sample);
-        }
-    }
-
-    // 3) Обновление UI ~10 Гц
-    if (now - lastUiTime >= UI_PERIOD_MS) {
-        lastUiTime = now;
-        ui_update();
-    }
+  // Задержка для корректного отображения в плоттере 
+  // (20 мс дает частоту обновления 50 Гц, этого достаточно для ЭКГ)
+  delay(20); 
 }
