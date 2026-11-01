@@ -1,0 +1,10 @@
+Command: make -j 10 all
+/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test/main/ecg_test.c: In function 'app_main':
+/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test/main/ecg_test.c:27:9: warning: 'ADC_ATTEN_DB_11' is deprecated [-Wdeprecated-declarations]
+   27 |         .atten = ADC_ATTEN_DB_11,
+      |         ^
+In file included from /home/programma/esp-idf/components/esp_adc/include/esp_adc/adc_oneshot.h:12,
+                 from /home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test/main/ecg_test.c:4:
+/home/programma/esp-idf/components/hal/include/hal/adc_types.h:52:5: note: declared here
+   52 |     ADC_ATTEN_DB_11 __attribute__((deprecated)) = ADC_ATTEN_DB_12,  ///<This is deprecated, it behaves the same as `ADC_ATTEN_DB_12`
+      |     ^~~~~~~~~~~~~~~
