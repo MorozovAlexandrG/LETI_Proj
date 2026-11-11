@@ -1,0 +1,100 @@
+#include <Arduino.h>
+#include <SPI.h>
+#include <SD.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+const char* ssid = "PAKT-2985"; 
+const char* password = "19439181";
+const char* serverUrl = "http://httpbin.org/post";
+#define AD_OUTPUT   2  
+#define PIN_BUTTON  9  
+#define SD_CS       20  
+#define SD_SCK      8   
+#define SD_MISO     7   
+#define SD_MOSI     10  
+bool isRecording = false;
+int lastButtonState = HIGH;
+unsigned long lastDebounceTime = 0;
+File myFile;
+int ecgBuffer[250];
+int bufferIndex = 0;
+void setup() {
+  Serial.begin(115200);
+  delay(3000); 
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+  analogReadResolution(12);
+  Serial.println("\nЗАПУСК");
+  SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+  if (!SD.begin(SD_CS)) {
+    Serial.println("SD-карта не найдена");
+  } else {
+    Serial.println("SD-карта готова.");
+  }
+  Serial.print("Подключение к Wi-Fi...");
+  WiFi.begin(ssid, password);
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWi-Fi подключен!");
+  } else {
+    Serial.println("\nОшибка Wi-Fi. Только SD.");
+  }
+  Serial.println("Нажми кнопку BOOT для старта.");
+}
+void loop() {
+  if (digitalRead(PIN_BUTTON) == LOW) {
+    isRecording = !isRecording;
+    if (isRecording) {
+      Serial.println("\nСТАРТ");
+      myFile = SD.open("/ecg_data.csv", FILE_WRITE);
+      if (myFile) myFile.println("Time_ms,Value");
+      bufferIndex = 0;
+    } else {
+      Serial.println("СТОП");
+      if (myFile) myFile.close();
+    }
+    delay(500);
+  }
+  if (isRecording) {
+    int val = analogRead(AD_OUTPUT); 
+    if (myFile) {
+      myFile.print(millis());
+      myFile.print(",");
+      myFile.println(val);
+    }
+    ecgBuffer[bufferIndex] = val;
+    bufferIndex++;
+    if (bufferIndex >= 250) {
+      Serial.print("Отправка... ");
+      if (WiFi.status() == WL_CONNECTED) {
+        String json;
+        json.reserve(2000); 
+        json = "{\"device_id\":\"xiao_ecg_01\",\"data\":[";
+        for (int i = 0; i < 250; i++) {
+          json += String(ecgBuffer[i]);
+          if (i < 249) json += ",";
+        }
+        json += "]}";
+        HTTPClient http;
+        http.begin(serverUrl);
+        http.addHeader("Content-Type", "application/json");
+        int code = http.POST(json);
+        if (code == 200) {
+          Serial.println("+200 OK");
+        } else {
+          Serial.print("-Код: ");
+          Serial.println(code);
+        }
+        http.end();
+      } else {
+        Serial.println("Нет Wi-Fi");
+      }
+      bufferIndex = 0;
+    }
+    delay(4); 
+  }
+}

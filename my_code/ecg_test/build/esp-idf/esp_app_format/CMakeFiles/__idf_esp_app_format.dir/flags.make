@@ -8,5 +8,5 @@ C_INCLUDES = -I"/home/programma/Рабочий стол/lab/daminova/LETI_Proj/m
 
 C_FLAGS = @"/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test/build/toolchain/cflags" -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Og -fno-shrink-wrap "-fmacro-prefix-map=/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test=." -fmacro-prefix-map=/home/programma/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu17 -Wno-old-style-declaration
 
-# Custom defines: esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj_DEFINES = PROJECT_VER="86c9600"; PROJECT_NAME="ecg_test"
+# Custom defines: esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj_DEFINES = PROJECT_VER="867b97b-dirty"; PROJECT_NAME="ecg_test"
 

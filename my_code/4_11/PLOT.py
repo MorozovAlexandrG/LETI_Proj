@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 from collections import deque
 import time
 
-PORT = '/dev/ttyACM1'
+PORT = '/dev/ttyACM0'
 BAUD = 115200
 
 print("Подключение...")

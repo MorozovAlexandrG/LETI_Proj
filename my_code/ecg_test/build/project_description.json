@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "ecg_test",
-    "project_version":    "86c9600",
+    "project_version":    "867b97b-dirty",
     "project_path":       "/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test",
     "idf_path":           "/home/programma/esp-idf",
     "build_dir":          "/home/programma/Рабочий стол/lab/daminova/LETI_Proj/my_code/ecg_test/build",
