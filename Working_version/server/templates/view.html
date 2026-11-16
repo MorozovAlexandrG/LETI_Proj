@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ rec.patient_name }} — Холтер{% endblock %}
+{% block body %}
+<h1>{{ rec.patient_name }}</h1>
+<p class="lead">{{ rec.filename }}</p>
+<div class="meta">
+  <div><span>Устройство</span>{{ rec.device_id }}</div>
+  <div><span>Принято</span>{{ rec.received_at | when }}</div>
+  <div><span>Частота</span>{{ rec.sample_rate }} Гц</div>
+  <div><span>Длительность</span>{{ rec.duration_sec | duration }}</div>
+  <div><span>Размер</span>{{ rec.size_bytes | size }}</div>
+</div>
+<p>
+  <a class="button secondary" href="{{ download_url }}">Скачать CSV</a>
+</p>
+
+<section class="chart-box">
+  <h2>Вся запись</h2>
+  <div class="plot tall"><canvas id="overview"></canvas></div>
+</section>
+
+<section class="chart-box">
+  <h2>Окно {{ window_sec | int }} с, с {{ start_sec }} с</h2>
+  <div class="toolbar">
+    {% if at_start %}
+    <span class="button disabled">Назад</span>
+    {% else %}
+    <a class="button" href="{{ page_url }}?start_sec={{ prev_sec }}">Назад</a>
+    {% endif %}
+    {% if at_end %}
+    <span class="button disabled">Дальше</span>
+    {% else %}
+    <a class="button" href="{{ page_url }}?start_sec={{ next_sec }}">Дальше</a>
+    {% endif %}
+    <form method="get" action="{{ page_url }}">
+      <label>Секунда
+        <input type="number" name="start_sec" min="0" step="1" value="{{ start_sec }}">
+      </label>
+      <button type="submit">Показать</button>
+    </form>
+  </div>
+  <div class="plot"><canvas id="series"></canvas></div>
+</section>
+
+<script id="overview-data" type="application/json">{{ overview | tojson }}</script>
+<script id="series-data" type="application/json">{{ series | tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script>
+  function points(payload) {
+    return payload.t.map(function (t, i) { return {x: t, y: payload.ecg[i]}; });
+  }
+
+  function draw(canvasId, payload, color) {
+    var canvas = document.getElementById(canvasId);
+    if (!payload.t.length) {
+      canvas.insertAdjacentHTML("beforebegin", "<p class='empty'>В этом окне нет отсчётов.</p>");
+      return;
+    }
+    new Chart(canvas, {
+      type: "line",
+      data: {
+        datasets: [{
+          data: points(payload),
+          borderColor: color,
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        parsing: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            type: "linear",
+            title: { display: true, text: "время, с" },
+            ticks: { maxTicksLimit: 8 }
+          },
+          y: { title: { display: true, text: "АЦП" } }
+        }
+      }
+    });
+  }
+
+  draw("overview", JSON.parse(document.getElementById("overview-data").textContent), "#1f6f63");
+  draw("series", JSON.parse(document.getElementById("series-data").textContent), "#8c2f2f");
+</script>
+{% endblock %}
