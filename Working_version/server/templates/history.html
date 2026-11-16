@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}История — Холтер{% endblock %}
+{% block body %}
+<h1>История</h1>
+<p class="lead">Записи, принятые с XIAO ESP32-C3. Отсчёты лежат в CSV, здесь только карточки.</p>
+{% if db_error %}
+<p class="banner">База недоступна: {{ db_error }}</p>
+{% endif %}
+<div class="table-wrap">
+  {% if rows %}
+  <table>
+    <thead>
+      <tr>
+        <th>Пациент</th>
+        <th>Устройство</th>
+        <th>Принято</th>
+        <th>Частота</th>
+        <th>Длительность</th>
+        <th>Размер</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.patient_name }}</td>
+        <td>{{ row.device_id }}</td>
+        <td>{{ row.received_at | when }}</td>
+        <td>{{ row.sample_rate }} Гц</td>
+        <td>{{ row.duration_sec | duration }}</td>
+        <td>{{ row.size_bytes | size }}</td>
+        <td class="actions">
+          <a class="button" href="/recordings/{{ row.id }}">Открыть</a>
+          <a class="button secondary" href="/recordings/{{ row.id }}/download">Скачать</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% elif not db_error %}
+  <p class="empty">Пока нет принятых записей.</p>
+  {% endif %}
+</div>
+{% endblock %}

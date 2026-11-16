@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Файлы — Холтер{% endblock %}
+{% block body %}
+<h1>Файлы</h1>
+<p class="lead">Список читается из папки <span class="file-name">{{ folder }}</span>. Имя пациента стоит в начале имени файла.</p>
+{% if db_error %}
+<p class="banner">История в базе недоступна, показаны файлы с диска: {{ db_error }}</p>
+{% endif %}
+<div class="panel">
+  {% if items %}
+  <ul class="file-list">
+    {% for item in items %}
+    <li>
+      <div>
+        <span class="file-patient">{{ item.patient }}</span>
+        <span class="file-name">{{ item.name }}</span>
+        <span class="file-patient">{{ item.mtime }} · {{ item.size | size }}</span>
+      </div>
+      <div class="actions">
+        {% if item.recording_id %}
+        <a class="button" href="/recordings/{{ item.recording_id }}">Открыть</a>
+        <a class="button secondary" href="/recordings/{{ item.recording_id }}/download">Скачать</a>
+        {% else %}
+        <a class="button" href="/files/{{ item.name | urlencode }}">Открыть</a>
+        <a class="button secondary" href="/files/{{ item.name | urlencode }}/download">Скачать</a>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">В папке нет CSV.</p>
+  {% endif %}
+</div>
+{% endblock %}
